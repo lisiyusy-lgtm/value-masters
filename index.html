@@ -331,6 +331,7 @@ async function send(){
   input.value = '';
   document.getElementById('sendBtn').disabled = true;
 
+  if(!chat.messages.length) { document.getElementById('chat').innerHTML=''; }
   appendBubble('user', text);
   showTyping();
 
