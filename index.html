@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>价值大师</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f2f2f2; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; }
+.app { background: #fff; width: 100%; max-width: 480px; min-height: 100vh; display: flex; flex-direction: column; }
+.header { padding: 20px 20px 14px; display: flex; align-items: center; justify-content: space-between; }
+.brand { font-size: 17px; font-weight: 500; color: #1a1a1a; }
+.brand span { color: #e05a5a; }
+.divider { height: 1px; background: #f2f2f2; }
+.selector { padding: 16px 20px 0; display: flex; gap: 14px; overflow-x: auto; }
+.selector::-webkit-scrollbar { display: none; }
+.master-card { display: flex; flex-direction: column; align-items: center; gap: 7px; cursor: pointer; flex-shrink: 0; padding-bottom: 14px; }
+.master-photo { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2.5px solid #f0f0f0; transition: border-color 0.2s; }
+.master-photo.active { border-color: #e05a5a; }
+.master-photo img { width: 100%; height: 100%; object-fit: cover; }
+.master-name { font-size: 11px; color: #aaa; transition: color 0.2s; }
+.master-name.active { color: #1a1a1a; font-weight: 500; }
+.chat { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; min-height: 400px; }
+.row { display: flex; gap: 10px; align-items: flex-start; }
+.row.user { flex-direction: row-reverse; }
+.av { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+.av img { width: 100%; height: 100%; object-fit: cover; }
+.av.user-av { background: #fde8e8; display: flex; align-items: center; justify-content: center; }
+.col { display: flex; flex-direction: column; gap: 5px; max-width: 72%; }
+.col.user { align-items: flex-end; }
+.name-label { font-size: 11px; color: #bbb; padding: 0 2px; }
+.bubble { padding: 12px 16px; font-size: 14px; line-height: 1.8; border-radius: 18px; }
+.bubble.ai { background: #f7f7f7; color: #1a1a1a; border-top-left-radius: 4px; }
+.bubble.user { background: #e05a5a; color: #fff; border-top-right-radius: 4px; }
+.typing { display: flex; gap: 5px; padding: 14px 18px; background: #f7f7f7; border-radius: 4px 18px 18px 18px; width: fit-content; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; animation: bounce 1.2s infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+.input-area { padding: 12px 20px 32px; border-top: 1px solid #f2f2f2; }
+.input-wrap { display: flex; align-items: center; gap: 10px; background: #f7f7f7; border-radius: 28px; padding: 10px 10px 10px 18px; }
+.chat-input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: #1a1a1a; font-family: inherit; }
+.chat-input::placeholder { color: #ccc; }
+.send-btn { width: 36px; height: 36px; border-radius: 50%; background: #e05a5a; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.send-btn:disabled { background: #f0b0b0; cursor: not-allowed; }
+.disclaimer { font-size: 10px; color: #ccc; text-align: center; margin-top: 10px; }
+.limit-tip { font-size: 12px; color: #e05a5a; text-align: center; padding: 8px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="brand">价值大师<span>·</span></div>
+  </div>
+  <div class="divider"></div>
+
+  <div class="selector" id="selector"></div>
+  <div class="divider"></div>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="input-area">
+    <div id="limitTip" class="limit-tip" style="display:none;">今日提问次数已用完，明天再来 👋</div>
+    <div class="input-wrap">
+      <input class="chat-input" id="input" type="text" placeholder="向大师提问…" />
+      <button class="send-btn" id="sendBtn" onclick="send()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <div class="disclaimer">基于公开资料模拟 · 不构成投资建议</div>
+  </div>
+</div>
+
+<script>
+const DAILY_LIMIT = 20;
+
+const investors = [
+  {
+    id: 'buffett',
+    name: '巴菲特',
+    fullName: '沃伦·巴菲特',
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Warren_Buffett_KU_Visit.jpg/440px-Warren_Buffett_KU_Visit.jpg',
+    prompt: `你是沃伦·巴菲特（Warren Buffett），伯克希尔·哈撒韦董事长。根据你的历年股东信、伯克希尔年会问答、《滚雪球》及公开访谈来回答问题。
+核心理念：投资于能理解的生意（能力圈）；寻找有持久竞争优势（护城河）的企业；以合理价格买优秀企业；长期持有；别人贪婪时恐惧，别人恐惧时贪婪；不亏损是第一原则；专注企业基本面而非宏观预测；管理层诚信最重要。
+说话风格：用通俗比喻（棒球、农场、保险），幽默风趣，偶尔引用格雷厄姆或芒格。用中文回答，控制在200字以内，像真实对话，不用列表。`
+  },
+  {
+    id: 'duan',
+    name: '段永平',
+    fullName: '段永平',
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Duan_Yongping_2018.jpg/440px-Duan_Yongping_2018.jpg',
+    prompt: `你是段永平，步步高系创始人，著名价值投资者。根据你在雪球的发帖（2011-2023）及公开访谈回答问题。
+核心理念：投资就是投生意；本分是做正确的事；Stop doing list比to-do list更重要；只投看懂的企业；长期持有优质企业；市场先生是仆人不是老师；企业文化是最重要的护城河；不用杠杆；犯错及时止损。
+说话风格：直接务实，有时用"其实很简单"开头，从商业角度而非投资角度看问题。用中文回答，控制在200字以内，像真实对话，不用列表。`
+  },
+  {
+    id: 'munger',
+    name: '芒格',
+    fullName: '查理·芒格',
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Charlie_Munger.jpg/440px-Charlie_Munger.jpg',
+    prompt: `你是查理·芒格（Charlie Munger），伯克希尔·哈撒韦副董事长。根据《穷查理宝典》、伯克希尔年会及DJCO年会回答问题。
+核心理念：多元思维模型；反过来想总是反过来想；人类误判心理学；集中投资少数优秀企业；等待好机会再出手；激励机制是理解行为的关键；简单比复杂好；终身学习；对自己的无知诚实。
+说话风格：直接犀利甚至苛刻，不怕批评，喜欢用多学科知识，幽默带讽刺。用中文回答，控制在200字以内，像真实对话，不用列表。`
+  },
+  {
+    id: 'lynch',
+    name: '彼得·林奇',
+    fullName: '彼得·林奇',
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Peter_Lynch_2012.jpg/440px-Peter_Lynch_2012.jpg',
+    prompt: `你是彼得·林奇（Peter Lynch），富达麦哲伦基金前经理，《彼得·林奇的成功投资》作者。
+核心理念：买你了解的；日常生活中发现投资机会；股票分类（成长股、周期股等）；PEG比率是核心估值工具；业余投资者有优势；定期检查持仓故事是否变化。
+说话风格：热情平易近人，充满具体案例，喜欢讲购物中心发现股票的故事，用普通人能理解的语言。用中文回答，控制在200字以内，像真实对话，不用列表。`
+  },
+  {
+    id: 'graham',
+    name: '格雷厄姆',
+    fullName: '本杰明·格雷厄姆',
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Benjamin_Graham_%281894-1976%29_portrait_on_23_March_1950.jpg/440px-Benjamin_Graham_%281894-1976%29_portrait_on_23_March_1950.jpg',
+    prompt: `你是本杰明·格雷厄姆（Benjamin Graham），价值投资之父，《聪明的投资者》作者，巴菲特的老师。
+核心理念：安全边际是投资核心；市场先生寓言；投资与投机的区别；定量分析资产负债表；分散投资降低风险；不预测市场时机；内在价值基于资产和盈利能力。
+说话风格：学院派严谨，引用具体数据，措辞谨慎，强调规则和原则。用中文回答，控制在200字以内，像真实对话，不用列表。`
+  }
+];
+
+let current = investors[0];
+let history = [];
+let isLoading = false;
+
+function getTodayKey() {
+  return 'count_' + new Date().toISOString().slice(0, 10);
+}
+
+function getCount() {
+  return parseInt(localStorage.getItem(getTodayKey()) || '0');
+}
+
+function addCount() {
+  localStorage.setItem(getTodayKey(), getCount() + 1);
+}
+
+function checkLimit() {
+  if (getCount() >= DAILY_LIMIT) {
+    document.getElementById('limitTip').style.display = 'block';
+    document.getElementById('input').disabled = true;
+    document.getElementById('sendBtn').disabled = true;
+    return false;
+  }
+  return true;
+}
+
+function renderSelector() {
+  const el = document.getElementById('selector');
+  el.innerHTML = investors.map(inv => `
+    <div class="master-card" onclick="selectInvestor('${inv.id}')">
+      <div class="master-photo ${inv.id === current.id ? 'active' : ''}">
+        <img src="${inv.photo}" onerror="this.style.display='none'" />
+      </div>
+      <span class="master-name ${inv.id === current.id ? 'active' : ''}">${inv.name}</span>
+    </div>
+  `).join('');
+}
+
+function selectInvestor(id) {
+  current = investors.find(i => i.id === id);
+  history = [];
+  renderSelector();
+  renderWelcome();
+}
+
+function renderWelcome() {
+  const chat = document.getElementById('chat');
+  chat.innerHTML = `
+    <div class="row">
+      <div class="av"><img src="${current.photo}" onerror="this.parentElement.style.background='#f0e8d8'" /></div>
+      <div class="col">
+        <span class="name-label">${current.fullName}</span>
+        <div class="bubble ai">你好！我是${current.fullName}。你可以问我关于投资、企业分析和价值投资理念的问题。</div>
+      </div>
+    </div>`;
+}
+
+function appendMsg(role, text) {
+  const chat = document.getElementById('chat');
+  if (role === 'user') {
+    chat.innerHTML += `
+      <div class="row user">
+        <div class="av user-av">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0b0b0" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+        <div class="col user">
+          <span class="name-label">你</span>
+          <div class="bubble user">${text}</div>
+        </div>
+      </div>`;
+  } else {
+    chat.innerHTML += `
+      <div class="row" id="lastAI">
+        <div class="av"><img src="${current.photo}" onerror="this.parentElement.style.background='#f0e8d8'" /></div>
+        <div class="col">
+          <span class="name-label">${current.fullName}</span>
+          <div class="bubble ai">${text}</div>
+        </div>
+      </div>`;
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showTyping() {
+  const chat = document.getElementById('chat');
+  chat.innerHTML += `
+    <div class="row" id="typing">
+      <div class="av"><img src="${current.photo}" onerror="this.parentElement.style.background='#f0e8d8'" /></div>
+      <div class="typing">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>`;
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+async function send() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text || isLoading) return;
+  if (!checkLimit()) return;
+
+  isLoading = true;
+  input.value = '';
+  document.getElementById('sendBtn').disabled = true;
+
+  appendMsg('user', text);
+  history.push({ role: 'user', content: text });
+  showTyping();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history, systemPrompt: current.prompt })
+    });
+    const data = await res.json();
+    const reply = data.reply || '抱歉，请稍后再试。';
+    removeTyping();
+    appendMsg('ai', reply);
+    history.push({ role: 'assistant', content: reply });
+    addCount();
+    checkLimit();
+  } catch (e) {
+    removeTyping();
+    appendMsg('ai', '网络出现问题，请稍后再试。');
+  }
+
+  isLoading = false;
+  document.getElementById('sendBtn').disabled = false;
+  input.focus();
+}
+
+document.getElementById('input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') send();
+});
+
+renderSelector();
+renderWelcome();
+checkLimit();
+</script>
+</body>
+</html>
