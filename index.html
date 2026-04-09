@@ -106,17 +106,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;backg
   </div>
 
   <div class="main">
-    <div class="main-header">
-      <button class="menu-btn" onclick="openSidebar()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-      <div class="header-info">
-        <div class="header-name" id="headerName">沃伦·巴菲特</div>
-        <div class="header-sub">价值投资大师</div>
-      </div>
-      <button class="new-btn" onclick="newChat()">+ 新对话</button>
-    </div>
-
+   
     <div class="chat" id="chat"></div>
 
     <div class="input-area">
@@ -265,7 +255,6 @@ function renderSidebar(){
       <div class="master-section">
         <button class="master-btn ${isActive?'active':''}" onclick="showProfile(investors.find(i=>i.id==='${inv.id}'))"">
           <span class="master-btn-name">${inv.fullName}</span>
-          <span style="font-size:10px;color:#bbb;">+ 新对话</span>
         </button>
         ${items.length>0 ? `<div class="chat-list">
           ${items.map(c=>`
