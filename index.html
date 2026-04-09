@@ -331,14 +331,14 @@ async function send(){
   input.value = '';
   document.getElementById('sendBtn').disabled = true;
 
-  if(!chat.messages.length) { document.getElementById('chat').innerHTML=''; }
+  const chats = loadChats();
+  const currentChat = chats[currentChatId];
+  if(!currentChat.messages.length) { document.getElementById('chat').innerHTML=''; }
   appendBubble('user', text);
   showTyping();
 
-  const chats = loadChats();
-  const chat = chats[currentChatId];
-  chat.messages.push({role:'user', content:text});
-  if(chat.title==='新对话') chat.title = text.slice(0,18);
+  currentChat.messages.push({role:'user', content:text});
+  if(currentChat.title==='新对话') currentChat.title = text.slice(0,18);
   saveChats(chats);
   renderSidebar();
 
@@ -346,7 +346,7 @@ async function send(){
     const res = await fetch('/api/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:chat.messages.slice(-10), systemPrompt:currentInvestor.prompt})
+      body:JSON.stringify({messages:currentChat.messages.slice(-10), systemPrompt:currentInvestor.prompt})
     });
     const data = await res.json();
     const reply = data.reply||'抱歉，请稍后再试。';
