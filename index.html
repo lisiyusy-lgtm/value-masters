@@ -81,6 +81,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;backg
   .menu-btn{display:flex;}
   .overlay.show{display:block;}
 }
+/* Profile 页面 */
+.profile-page{padding:32px 28px;overflow-y:auto;flex:1;}
+.profile-tag{display:inline-block;font-size:11px;color:#2e6da4;background:#e8f1f8;padding:4px 12px;border-radius:20px;margin-bottom:16px;letter-spacing:0.03em;}
+.profile-name{font-size:24px;font-weight:500;color:#1a2e3b;margin-bottom:10px;}
+.profile-desc{font-size:14px;line-height:1.85;color:#5d7a8a;margin-bottom:28px;}
+.profile-section-title{font-size:11px;color:#aab4bc;letter-spacing:0.06em;margin-bottom:12px;}
+.profile-principles{display:flex;flex-direction:column;gap:10px;}
+.profile-principle{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;background:#f4f7f9;border-radius:10px;font-size:13px;color:#2c3e50;line-height:1.6;}
+.profile-principle-dot{width:6px;height:6px;border-radius:50%;background:#2e6da4;flex-shrink:0;margin-top:6px;}
+.profile-start-btn{margin-top:28px;padding:12px 24px;border-radius:24px;background:#1a5276;border:none;color:#fff;font-size:14px;cursor:pointer;font-family:inherit;}
+.profile-start-btn:hover{background:#154360;}
 </style>
 </head>
 <body>
@@ -127,22 +138,47 @@ const DAILY_LIMIT = 20;
 const investors = [
   {
     id:'buffett', fullName:'沃伦·巴菲特',
+    profile: {
+  title: '奥马哈先知',
+  desc: '伯克希尔·哈撒韦董事长，全球最成功的投资人之一。从小展现商业天赋，师从价值投资之父本杰明·格雷厄姆，将价值投资发扬光大，连续数十年跑赢市场。',
+  principles: ['只投资你能看懂的生意（能力圈）', '寻找拥有持久护城河的企业', '以合理的价格买优秀企业，而非便宜价格买普通企业', '长期持有，最喜欢的持有期是永远', '别人贪婪时恐惧，别人恐惧时贪婪', '第一条规则：不要亏损']
+},
     prompt:`你是沃伦·巴菲特，伯克希尔·哈撒韦董事长。根据历年股东信、年会问答及公开访谈回答问题。核心理念：能力圈、护城河、合理价格买优秀企业、长期持有、别人贪婪时恐惧、不亏损是第一原则、专注基本面、管理层诚信最重要。说话风格：通俗比喻，幽默风趣。用中文回答，200字以内，像真实对话，不用列表。`
   },
   {
     id:'duan', fullName:'段永平',
+    profile: {
+  title: '中国巴菲特',
+  desc: '步步高系创始人，OPPO与vivo间接创始人。白手起家将小霸王做到行业第一，后移居美国潜心投资，曾以62万美元竞拍与巴菲特共进午餐。投资苹果、茅台等获得巨额回报。',
+  principles: ['投资就是投生意，要真正理解商业模式', '本分：做正确的事，不做错误的事更重要', 'Stop doing list 比 to-do list 更重要', '不懂不投，能力圈之外坚决不碰', '不用杠杆，不看股价，专注企业价值', '犯错了要及时认错止损，不死守']
+},
     prompt:`你是段永平，步步高系创始人，价值投资者。根据雪球发帖及公开访谈回答问题。核心理念：投资就是投生意、本分、Stop doing list、只投看懂的、长期持有、不用杠杆、犯错及时止损。说话风格：直接务实，从商业角度看问题。用中文回答，200字以内，像真实对话，不用列表。`
   },
   {
     id:'munger', fullName:'查理·芒格',
+    profile: {
+  title: '多元思维大师',
+  desc: '伯克希尔·哈撒韦副董事长，巴菲特的黄金搭档长达半世纪。律师出身，博览群书，将物理、心理学、数学、经济学等多学科融入投资决策，被誉为"行走的智慧之书"。',
+  principles: ['用多元思维模型分析问题，而非单一视角', '反过来想，总是反过来想', '避免愚蠢比追求聪明更重要', '人类有24种认知偏差，投资者要时刻警惕', '集中投资少数真正优秀的企业', '终身学习，每天都要比昨天聪明一点']
+},
     prompt:`你是查理·芒格，伯克希尔副董事长。根据《穷查理宝典》及年会问答回答问题。核心理念：多元思维模型、反过来想、人类误判心理学、集中投资、等待好机会、激励机制、终身学习。说话风格：直接犀利，幽默带讽刺，用多学科知识。用中文回答，200字以内，像真实对话，不用列表。`
   },
   {
     id:'lynch', fullName:'彼得·林奇',
+    profile: {
+  title: '十倍股猎手',
+  desc: '富达麦哲伦基金前经理，任职13年间年均回报29%，将基金规模从1800万扩张到140亿美元。他相信普通人比机构更有投资优势，因为好公司往往藏在日常生活里。',
+  principles: ['买你了解的——日常生活是最好的选股器', '在机构投资者发现之前找到成长股', 'PEG比率：市盈率除以增长率，小于1为佳', '了解你持有每只股票的故事和原因', '业余投资者比华尔街更早感知消费趋势', '故事变了就是卖出信号，不要死守']
+},
     prompt:`你是彼得·林奇，富达麦哲伦基金前经理。根据《彼得·林奇的成功投资》及访谈回答问题。核心理念：买你了解的、日常发现机会、PEG比率、业余投资者有优势、定期检查持仓故事。说话风格：热情平易，充满具体案例。用中文回答，200字以内，像真实对话，不用列表。`
   },
   {
     id:'graham', fullName:'本杰明·格雷厄姆',
+    profile: {
+  title: '价值投资之父',
+  desc: '《证券分析》与《聪明的投资者》作者，现代价值投资的奠基人。经历1929年大崩溃后系统化构建投资理论，培养出巴菲特等众多投资大师，其思想影响了整整一代投资人。',
+  principles: ['安全边际：以远低于内在价值的价格买入', '市场先生是你的仆人，不是你的老师', '投资与投机有本质区别，要清楚自己在做什么', '内在价值基于资产和盈利能力，与股价无关', '分散投资，至少持有10至30只股票', '不要试图预测市场时机']
+},
     prompt:`你是本杰明·格雷厄姆，价值投资之父，巴菲特的老师。根据《聪明的投资者》及《证券分析》回答问题。核心理念：安全边际、市场先生寓言、投资与投机的区别、定量分析、分散投资、不预测市场。说话风格：学院派严谨，引用数据，强调原则。用中文回答，200字以内，像真实对话，不用列表。`
   }
 ];
@@ -227,7 +263,7 @@ function renderSidebar(){
     return `
       ${idx>0 ? '<div class="sidebar-divider"></div>' : ''}
       <div class="master-section">
-        <button class="master-btn ${isActive?'active':''}" onclick="newChat('${inv.id}')">
+        <button class="master-btn ${isActive?'active':''}" onclick="showProfile(investors.find(i=>i.id==='${inv.id}'))"">
           <span class="master-btn-name">${inv.fullName}</span>
           <span style="font-size:10px;color:#bbb;">+ 新对话</span>
         </button>
@@ -262,6 +298,28 @@ function appendBubble(role, text){
   chat.scrollTop = chat.scrollHeight;
 }
 
+function showProfile(inv){
+  currentInvestor = inv;
+  renderHeader();
+  renderSidebar();
+  const chat = document.getElementById('chat');
+  chat.innerHTML = `
+    <div class="profile-page">
+      <div class="profile-tag">${inv.profile.title}</div>
+      <div class="profile-name">${inv.fullName}</div>
+      <div class="profile-desc">${inv.profile.desc}</div>
+      <div class="profile-section-title">核心投资理念</div>
+      <div class="profile-principles">
+        ${inv.profile.principles.map(p=>`
+          <div class="profile-principle">
+            <div class="profile-principle-dot"></div>
+            <span>${p}</span>
+          </div>`).join('')}
+      </div>
+      <button class="profile-start-btn" onclick="newChat('${inv.id}')">开始对话 →</button>
+    </div>`;
+}
+  
 function showTyping(){
   const chat = document.getElementById('chat');
   chat.innerHTML+=`<div class="row" id="typing">
