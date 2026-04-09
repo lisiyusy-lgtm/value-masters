@@ -265,7 +265,8 @@ function renderSidebar(){
 }
 
 function renderHeader(){
-  document.getElementById('headerName').textContent = currentInvestor.fullName;
+  const el = document.getElementById('headerName');
+  if(el) el.textContent = currentInvestor.fullName;
 }
 
 function appendBubble(role, text){
