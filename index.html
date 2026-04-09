@@ -384,7 +384,7 @@ document.getElementById('input').addEventListener('keydown', e=>{
 const existingChats = loadChats();
 const allIds = Object.keys(existingChats).sort((a,b)=>b-a);
 if(allIds.length>0) loadChat(allIds[0]);
-else newChat();
+else showProfile(investors[0]);
 checkLimit();
 </script>
 </body>
